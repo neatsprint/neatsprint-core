@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from neatsprint_lib.auth import Principal, require_permission
 from neatsprint_lib.db import get_session
 from neatsprint_lib.errors import ApiError
+from neatsprint_lib.events import enqueue
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -91,6 +92,13 @@ async def update_tenant(
         if plan is None:
             raise ApiError(422, "invalid_plan", "Unknown plan.")
         tenant.plan_code = plan.code
+    enqueue(
+        session,
+        event_type="tenant.updated",
+        tenant_id=tenant.id,
+        actor_id=principal.user_id,
+        payload={"tenant_id": str(tenant.id), "plan_code": tenant.plan_code},
+    )
     await session.commit()
     return JSONResponse(envelope(request, await _tenant_payload(session, principal.tenant_id)))
 
@@ -124,6 +132,13 @@ async def update_settings(
         )
     for field, value in data.items():
         setattr(settings, field, value)
+    enqueue(
+        session,
+        event_type="tenant.settings_changed",
+        tenant_id=principal.tenant_id,
+        actor_id=principal.user_id,
+        payload={"changed": sorted(data.keys())},
+    )
     await session.commit()
     return JSONResponse(
         envelope(request, (await _tenant_payload(session, principal.tenant_id))["settings"])
@@ -192,6 +207,13 @@ async def set_tenant_application(
         session.add(row)
     else:
         row.enabled = enabled
+    enqueue(
+        session,
+        event_type="module.toggled",
+        tenant_id=principal.tenant_id,
+        actor_id=principal.user_id,
+        payload={"module": code, "enabled": enabled},
+    )
     await session.commit()
     return JSONResponse(
         envelope(
