@@ -8,7 +8,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from neatsprint_lib.auth import Principal, require_permission
-from neatsprint_lib.db import get_session
+from neatsprint_lib.db import get_tenant_session
 from neatsprint_lib.errors import ApiError
 from neatsprint_lib.events import enqueue
 from sqlalchemy import select
@@ -33,7 +33,7 @@ from neatsprint_core.db.models import (
 
 router = APIRouter(prefix="/core", tags=["tenancy"])
 
-SessionDep = Annotated[AsyncSession, Depends(get_session)]
+SessionDep = Annotated[AsyncSession, Depends(get_tenant_session)]
 ReadPrincipal = Annotated[Principal, Depends(require_permission("core:tenant:read"))]
 UpdatePrincipal = Annotated[Principal, Depends(require_permission("core:tenant:update"))]
 
