@@ -17,6 +17,7 @@ class TenantSettingsOut(BaseModel):
     retention_days: int
     aggregation_threshold: int
     domain_auto_join: bool
+    allow_time_without_sprint: bool
 
 
 class TenantOut(BaseModel):
@@ -44,6 +45,7 @@ class TenantSettingsUpdate(BaseModel):
     retention_days: int | None = Field(default=None, ge=1, le=365)
     aggregation_threshold: int | None = Field(default=None, ge=0, le=100)
     domain_auto_join: bool | None = None
+    allow_time_without_sprint: bool | None = None
 
     @field_validator("week_start")
     @classmethod

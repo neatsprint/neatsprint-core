@@ -64,6 +64,7 @@ async def _tenant_payload(session: AsyncSession, tenant_id: UUID) -> dict[str, A
             retention_days=settings.retention_days,
             aggregation_threshold=settings.aggregation_threshold,
             domain_auto_join=settings.domain_auto_join,
+            allow_time_without_sprint=settings.allow_time_without_sprint,
         ),
     ).model_dump(mode="json")
 

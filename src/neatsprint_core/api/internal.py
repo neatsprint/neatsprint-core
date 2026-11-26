@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import secrets
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, Request
 from fastapi.responses import JSONResponse
@@ -13,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from neatsprint_core.api.responses import envelope
 from neatsprint_core.api.schemas import ProvisionTenantRequest
-from neatsprint_core.db.models import Plan, Tenant
+from neatsprint_core.db.models import Plan, Tenant, TenantSettings
 from neatsprint_core.services.catalogue import provision_tenant
 
 router = APIRouter(prefix="/internal", tags=["internal"])
@@ -56,6 +57,15 @@ async def tenant_by_slug(
             },
         )
     )
+
+
+@router.get("/tenants/{tenant_id}/time-policy", summary="Time logging policy for a tenant")
+async def tenant_time_policy(
+    tenant_id: UUID, _: BootstrapDep, request: Request, session: SessionDep
+) -> JSONResponse:
+    settings = await session.get(TenantSettings, tenant_id)
+    allow = settings.allow_time_without_sprint if settings is not None else True
+    return JSONResponse(envelope(request, {"allow_time_without_sprint": allow}))
 
 
 @router.get("/tenants/{tenant_id}/limits", summary="Plan limits for a tenant")

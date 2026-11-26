@@ -67,6 +67,9 @@ class TenantSettings(Base):
     retention_days: Mapped[int] = mapped_column(Integer, nullable=False, default=30)
     aggregation_threshold: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     domain_auto_join: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    allow_time_without_sprint: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="true"
+    )
 
 
 class Application(Base):
